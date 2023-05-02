@@ -1,7 +1,6 @@
 import random
 import numpy as np
 
-
 class Event:
     def __init__(self, name, time):
         self.name = name
@@ -36,7 +35,6 @@ if f == 1:
     a3, b3 = map(int, input('Интервалы для ЭВМ_3, через пробел: ').split())
     # стандартные значения = 3 7
 elif f == 2:
-
     # количество заданий
     tasks = 200
 
@@ -50,19 +48,18 @@ elif f == 2:
     weight_evm_1_to_3 = 0.7
 
     # интервалы времени
-    a1 = 3
+    a1 = 4
     a2 = 3
     a3 = 5
 
-    b1 = 5
-    b2 = 4
-    b3 = 7
+    b1 = 1
+    b2 = 1
+    b3 = 2
 else:
     print("Ошибка! Некорректно введены данные.")
 
 events = []
 now_time = 0 # текущее время
-
 
 
 # глобальные переменные для ЭВМ 1
@@ -217,7 +214,7 @@ def evm_2(task_number, enemy_task, enemy_time):
 def evm_3(task_number, enemy_task, enemy_time):
     global now_time, evm_3_relax, evm_3_last, evm_3_total_time, evm_3_total_relax, evm_3_total_tasks, evm_3_total_queue
 
-    # кол-во заявок
+    # количество заявок
     evm_3_total_tasks += 1
 
     # поступила задача от ЭВМ 1
@@ -244,7 +241,6 @@ def evm_3(task_number, enemy_task, enemy_time):
 
     # время выполнения заявки
     evm_3_work = np.random.uniform(a3, b3)
-    # evm_3_work = 10
     global evm_3_w
     evm_3_w = evm_3_work
 
@@ -298,30 +294,35 @@ for i in events_sorted:
     i.show()
 
 
-# Среднее количество каналов в обслуживании можно найти по формуле:
-# L = λ1 * T1 + λ2 * T2 + λ3 * T3,
-# где λi - интенсивность потока i, а Ti - среднее время обработки задания на ЭВМ i.
+l1 = weight_1/a1
+l2 = weight_2/a2
+l3 = weight_3/a3
+# суммарная интенсивность потока заявок для всех эвм
+l = l1 + l2 + l3
 
-# Для нахождения интенсивности потоков необходимо воспользоваться формулой:
-# λi = Pi / Ti,
-# где Pi - вероятность поступления задания на ЭВМ i.
-lam1 = weight_1 / evm_1_w
-lam2 = weight_2 / evm_2_w
-lam3 = weight_3 / evm_3_w
-print(lam1,lam2,lam3)
+# интенсивности обслуживания на каждой ЭВМ
+fi1 = 1/a1
+fi2 = 1/a2
+fi3 = 1/a3
 
-served_chanel = lam1*evm_1_w + lam2*evm_2_w + lam3*evm_3_w
+# средние загрузки каждой из ЭВМ
+ro = l/(fi1+fi2+fi3)
+ro1 = l1/fi1
+ro2 = l2/fi2
+ro3 = l3/fi3
 
+# среднее количество каналов в обслуживании
+served_chanel = l*(weight_1*a1+weight_2*a2+weight_3*a3)
 
+# среднее время, которое заявка проводит в очереди
+Wq = (ro1**2+ro2**2+ro3**2)/(2*(1-ro1)*l)
 
+# среднее число заявок в очереди
+task_in_queue = l*Wq
+lis = l*served_chanel
 
-
-# среднее число заявок в очереди можно найти по формуле L_оч = (p^2 * (1 - p)) / (2 * (1 - p)),
-# где p - вероятность того, что заявка приходит в систему и не обслуживается сразу же.
-r = 1 - weight_1
-task_in_queue = (r**2*(1-r))/(2*(1-r))
-
-# среднее число заявок в системе равно сумме среднего числа заявок в очереди и среднего числа каналов в обслуживани
+# среднее число заявок в системе
+task_in_system = task_in_queue + lis
 
 
 print('')
@@ -355,22 +356,20 @@ queue_3 = float(abs(evm_3_total_time - evm_3_total_relax - evm_3_total_queue) / 
 print('Среднее время ожидания в очереди', round(queue_3,2),'мин.')
 
 
-
 print('')
 print("Общая статистика работы системы:")
 print('Время работы системы:', round(events_sorted[0].time - events_sorted[len(events_sorted) - 1].time,2),'мин.')
-print('Среднее число каналов в обслуживании:', served_chanel)
+print('Среднее число каналов в обслуживании:', round(served_chanel,2))
 print('Среднее число заявок в очереди:', round(task_in_queue))
-print('Среднее число заявок в системе:', round(round(served_chanel)+round(task_in_queue)))
+print('Среднее число заявок в системе:',round(task_in_system))
 print('Среднее время пребывания заявки в системе:',round( (evm_1_total_relax + evm_2_total_relax + evm_3_total_relax) / (
         evm_1_total_tasks + evm_2_total_tasks + evm_3_total_tasks),2),'мин.')
 print('Среднее время ожидания в очереди', round (((queue_1 + queue_2 + queue_3) / 3.0),2),'мин.')
 #print('Эффективность', tasks / (events_sorted[0].time - events_sorted[len(events_sorted) - 1].time))
 
 
-# РЕКОМЕНДАЦИИ
-# ЗАВИСЯТ ОТ ВХОДНЫХ ДАННЫХ
-# Направить больше заявок на ЭВМ_2 и ЭВМ_3, так как ЭВМ_1 работает, но все равно отдает заяки на ЭВМ_2 и ЭВМ_3, в идеале необходимо свести это количество к нулю;
+# РЕКОМЕНДАЦИИ ЗАВИСЯТ ОТ ВХОДНЫХ ДАННЫХ
+# Направить больше заявок на ЭВМ_2 и ЭВМ_3, так как ЭВМ_1 работает, но все равно отдает заявки на ЭВМ_2 и ЭВМ_3, в идеале необходимо свести это количество к нулю;
 # При этом изменить распределение из ЭВМ_1 в ЭВМ_2 и ЭВМ_3 на [0.8:0.2], так как ЭВМ_2 работает быстрее ЭВМ_3;
 
 
