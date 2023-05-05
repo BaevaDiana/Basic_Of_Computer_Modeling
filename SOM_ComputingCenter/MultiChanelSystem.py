@@ -270,6 +270,7 @@ def evm_3(task_number, enemy_task, enemy_time):
 
 for i in range(1, tasks + 1):
     task_interval = np.random.uniform(2, 4)
+    # task_interval = 2
     global tsk_interval
     tsk_interval = task_interval
     evm_number = random.choices((1, 2, 3), weights=[weight_1, weight_2, weight_3])
